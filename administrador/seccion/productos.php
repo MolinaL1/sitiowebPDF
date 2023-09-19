@@ -14,6 +14,7 @@
             // INSERT INTO `libros` (`id`, `nombre`, `imagen`) VALUES (NULL, 'libro de php', 'imagen jpg');
             $sentenciaSQL= $conexion->prepare("INSERT INTO `libros` (nombre,imagen) VALUES (:nombre,:imagen);");
             $sentenciaSQL->bindParam(':nombre',$txtNombre);
+            $sentenciaSQL->bindParam(':imagen',$txtImagen);
 
             $fecha=new DateTime();
             $nombreArchivo=($txtImagen!="")?$fecha->getTimestamp()."_".$_FILES["txtImagen"]["name"]:"imagen.jpg";
@@ -26,6 +27,7 @@
             $sentenciaSQL->bindParam(':imagen',$nombreArchivo);
             $sentenciaSQL->execute();
             // echo "Presionado boton agregar";
+            header("Location:productos.php");
             break;
         case 'Modificar':
             $sentenciaSQL= $conexion->prepare("UPDATE libros SET nombre=:nombre WHERE id=:id");
@@ -40,15 +42,30 @@
                 
                 move_uploaded_file($tmpImagen,"../../img/".$nombreArchivo);
 
-                $sentenciaSQL= $conexion->prepare("UPDATE libros SET nombre=:imagen WHERE id=:id");
-                $sentenciaSQL->bindParam(':nombre',$txtImagen);
+                $sentenciaSQL= $conexion->prepare("SELECT imagen FROM libros WHERE id=:id");
                 $sentenciaSQL->bindParam(':id',$txtID);
                 $sentenciaSQL->execute();
+                $Libros=$sentenciaSQL->fetch(PDO::FETCH_LAZY);
+    
+                if (isset($libros["imagen"]) && ($libros["imagen.jpg"])) {
+    
+                    if (file_exists("../../img/".$libros["imagen"])) {
+                        unlink("../../img/".$libros["imagen"]);
+                    }
+                }
+
+                $sentenciaSQL= $conexion->prepare("UPDATE libros SET imagen=:imagen WHERE id=:id");
+                $sentenciaSQL->bindParam(':imagen',$nombreArchivo);
+                $sentenciaSQL->bindParam(':id',$txtID);
+                $sentenciaSQL->execute();
+                
             }
+            header("Location:productos.php");
             // echo "Presionado boton Modificar";
             break;
         case 'Cancelar':
-            echo "Presionado boton Cancelar";
+            // echo "Presionado boton Cancelar";
+            header("Location:productos.php");
             break;
         case 'Seleccionar':
             // echo "Presionado boton Selecionar";
@@ -76,6 +93,7 @@
             $sentenciaSQL= $conexion->prepare("DELETE FROM libros WHERE id=:id");
             $sentenciaSQL->bindParam(':id',$txtID);
             $sentenciaSQL->execute();
+            header("Location:productos.php");
             break;
         
         default:
@@ -97,21 +115,24 @@
             <form method="POST" enctype="multipart/form-data">
                 <div class="form-group">
                     <label for="txtID">ID</label>
-                    <input type="text" value="<?php echo $txtID?>" class="form-control" name="txtID" id="txtID" placeholder="ID">
+                    <input type="text" required readonly value="<?php echo $txtID?>" class="form-control" name="txtID" id="txtID" placeholder="ID">
                 </div>
                 <div class="form-group">
                     <label for="txtNombre">Nombre</label>
-                    <input type="text" value="<?php echo $txtNombre?>" class="form-control" name="txtNombre" id="txtNombre" placeholder="Nombre">
+                    <input type="text" required value="<?php echo $txtNombre?>" class="form-control" name="txtNombre" id="txtNombre" placeholder="Nombre">
                 </div>
                 <div class="form-group">
                     <label for="txtImagen">Imagen</label>
-                    <?php echo $txtImagen?>
+                    <br>
+                    <?php if ($txtImagen!="") { ?>
+                        <img class="img-thumbnail rounded" src="../../img/<?php echo $txtImagen;?>" width="50" alt="">
+                       <?php } ?>
                     <input type="file" class="form-control" name="txtImagen" id="txtImagen" placeholder="Escribe tu password">
                 </div>
                 <div class="btn-group" role="group" aria-label="">
-                    <button type="submit" name="accion" value="Agregar" class="btn btn-success">Agregar</button>
-                    <button type="submit" name="accion" value="Modificar" class="btn btn-warning">Modificar</button>
-                    <button type="submit" name="accion" value="Cancelar" class="btn btn-info">Cancelar</button>
+                    <button type="submit" name="accion" <?php echo ($accion=="Seleccionar")?"disabled":""?> value="Agregar" class="btn btn-success">Agregar</button>
+                    <button type="submit" name="accion" <?php echo ($accion!=="Seleccionar")?"disabled":""?> value="Modificar" class="btn btn-warning">Modificar</button>
+                    <button type="submit" name="accion" <?php echo ($accion!=="Seleccionar")?"disabled":""?> value="Cancelar" class="btn btn-info">Cancelar</button>
                 </div>
             </form>
         </div>
@@ -142,7 +163,9 @@
             </td>
             <td><?php echo $libros['id']?></td>
             <td><?php echo $libros['nombre']?></td>
-            <td><?php echo $libros['imagen']?></td>
+            <td>
+                <img class="img-thumbnail rounded" src="../../img/<?php echo $libros['imagen']?>" width="50" alt="">
+            </td>
         </tr>
         <?php } ?>
     </tbody>
