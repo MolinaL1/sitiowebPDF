@@ -8,7 +8,7 @@
     $accion=(isset($_POST['accion']))?$_POST['accion']:"";
 
     include("../config/bd.php");
-
+print_r($_POST);
     switch ($accion) {
         case 'Agregar':
             // INSERT INTO `libros` (`id`, `nombre`, `imagen`) VALUES (NULL, 'libro de php', 'imagen jpg');
@@ -127,7 +127,7 @@
                     <?php if ($txtImagen!="") { ?>
                         <img class="img-thumbnail rounded" src="../../img/<?php echo $txtImagen;?>" width="50" alt="">
                        <?php } ?>
-                    <input type="file" class="form-control" name="txtImagen" id="txtImagen" placeholder="Escribe tu password">
+                    <input type="file" class="form-control" name="txtImagen" id="txtImagen" placeholder="Escribe tu password" require>
                 </div>
                 <div class="btn-group" role="group" aria-label="">
                     <button type="submit" name="accion" <?php echo ($accion=="Seleccionar")?"disabled":""?> value="Agregar" class="btn btn-success">Agregar</button>
@@ -141,6 +141,7 @@
 
 </div>
 <div class="col-md-7">
+   <a href="reportes.php">Reportes pdf</a>
    <table class="table table-bordered">
     <thead>
         <tr>
@@ -155,6 +156,7 @@
         <?php foreach($listaLibros as $libros){?>
         <tr>
             <td>
+                
                 <form method="post">
                     <input type="hidden" name="txtID" id="txtID" value="<?php echo $libros['id']?>">
                     <input type="submit" name="accion"  value="Seleccionar" class="btn btn-primary"/>
